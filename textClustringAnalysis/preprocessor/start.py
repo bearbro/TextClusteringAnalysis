@@ -5,6 +5,7 @@ import re
 import os
 import time
 import functools
+from dealOCRTxt import doForOcr
 
 '''
 分词、去停顿词、词干提取
@@ -30,6 +31,7 @@ def log(text):
 
 def cleanData(txt: str) -> str:
     """清洗数据： 去除非法符号"""  # todo
+    txt=doForOcr(txt)
     noabc = re.compile('[^a-zA-Z\']')
     txt = noabc.sub(' ', txt)
     letter = re.compile(' [a-zA-Z,.] ')
@@ -117,7 +119,7 @@ def dealOneDir(inDir, outDir, stopWordFile=None):
 if __name__ == '__main__':
     # print(preprocessing('It’s 9% of all revenue after taxes generated through the HYGH platform from Day 1'))
 
-    dirName = 'test'
+    # dirName = 'txt_ocr_general'
     dealOneDir('/Users/brobear/OneDrive/data-whitepaper/data/%s' % dirName,
                '/Users/brobear/OneDrive/data-whitepaper/data/%s_preproccess' % dirName,
                'stopwords.txt'

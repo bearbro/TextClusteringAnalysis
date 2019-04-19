@@ -5,3 +5,6 @@ pip install nltk
 >>> nltk.download('punkt')
 >>> nltk.download('averaged_perceptron_tagger')
 >>> nltk.download('wordnet')
+
+pip install matplotlib
+pip install seaborn
