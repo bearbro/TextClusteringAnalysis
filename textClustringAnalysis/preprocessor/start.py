@@ -3,9 +3,9 @@ from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 import re
 import os
-import time
-import functools
-from dealOCRTxt import doForOcr
+from textClustringAnalysis.preprocessor.dealOCRTxt import doForOcr
+from textClustringAnalysis.common import log
+from textClustringAnalysis.preprocessor.dataInfo import dataInfo_main
 
 '''
 分词、去停顿词、词干提取
@@ -13,20 +13,6 @@ from dealOCRTxt import doForOcr
 
 '''
 
-
-def log(text):
-    def decorator(fun):
-        @functools.wraps(fun)
-        def wrapper(*args, **kw):
-            s1 = time.time()
-            r = fun(*args, **kw)
-            s2 = time.time()
-            print('%s %s %s ms' % (text, fun.__name__, 1000 * (s2 - s1)))
-            return r
-
-        return wrapper
-
-    return decorator
 
 
 def cleanData(txt: str) -> str:
@@ -116,7 +102,8 @@ def dealOneDir(inDir, outDir, stopWordFile=None):
                 dealOneTxt(inFile, outFile, stop_words)
 
 
-if __name__ == '__main__':
+def preprocessor_main(dirName):
+    """对文件集进行预处理 分词、去停顿词、词干提取"""
     # print(preprocessing('It’s 9% of all revenue after taxes generated through the HYGH platform from Day 1'))
 
     # dirName = 'txt_ocr_general'
@@ -124,3 +111,9 @@ if __name__ == '__main__':
                '/Users/brobear/OneDrive/data-whitepaper/data/%s_preproccess' % dirName,
                'stopwords.txt'
                )
+    #帅选
+    dataInfo_main(dirName)
+
+if __name__ == '__main__':
+    dirName = ''
+    preprocessor_main(dirName)

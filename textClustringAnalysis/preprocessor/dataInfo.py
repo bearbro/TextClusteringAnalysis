@@ -1,38 +1,49 @@
 import os
-from start import log
+from textClustringAnalysis.common import log
 import numpy
 from matplotlib import pyplot
 import shutil
 import seaborn as sns
 from scipy import stats
 
+
 def dealOneTxt(filename):
     """处理一个文件"""
-    wordset = set()
-    txtlen = 0
+    worddict = {}
     f = open(filename, 'r', encoding='utf-8', errors='ignore')  # 读模式
     for line in f.readlines():
         line = line.replace('\x00\x00', ' ').replace('\x00', '')
         for w in line.split():
-            wordset.add(w)
-            txtlen += 1
-    return wordset, txtlen
+            worddict[w] = worddict.get(w, 0) + 1
+    return worddict
+
+
+@log("useTime")
+def getWordCount(inDir):
+    """词向量"""
+    files = os.listdir(inDir)
+    txtdict = {}
+    # wordset=set()
+    for file in files:
+        if file.split('.')[-1] in ['txt', 'TXT']:
+            inFile = inDir + '/' + file
+            worddicti = dealOneTxt(inFile)
+            # wordset |= set(worddicti.keys())
+            txtdict[file[:-4]] = worddicti
+    return txtdict  # ,wordset
 
 
 @log("useTime")
 def dealOneDir(inDir):
     """处理一个文件夹"""
     wordset = set()
-    r = [[], [], []]
-    files = os.listdir(inDir)
-    for file in files:
-        if file.split('.')[-1] in ['txt', 'TXT']:
-            inFile = inDir + '/' + file
-            wordseti, txtleni = dealOneTxt(inFile)
-            wordset |= wordseti
-            r[0].append(txtleni)
-            r[1].append(len(wordseti))
-            r[2].append(file)
+    r = [[], [], []]  # 文本长度，词种类数，总词种类数
+    txtdict = getWordCount(inDir)
+    for (txt, worddict) in txtdict.items():
+        wordset |= set(worddict.keys())
+        r[0].append(sum(worddict.values()))
+        r[1].append(len(worddict))
+        r[2].append(txt)
     r.append(len(wordset))
     return r
 
@@ -73,9 +84,9 @@ def fiveNumber(nums):
 
 
 @log("useTime")
-def selectFile(ADir, fileList, BDir):  # A->
+def selectFile(ADir, fileList, BDir):  # A->B
     Ailes = os.listdir(ADir)
-    if  os.path.exists(BDir):
+    if os.path.exists(BDir):
         print("error: all")
         raise NameError('%s 已经存在' % BDir)
     os.mkdir(BDir)
@@ -93,7 +104,8 @@ def selectFile(ADir, fileList, BDir):  # A->
     print("error:", error)
 
 
-if __name__ == '__main__':
+def dataInfo_main(dirName):
+    """显示文档集的统计信息"""
     # print(preprocessing('It’s 9% of all revenue after taxes generated through the HYGH platform from Day 1'))
 
     # dirName = 'txt_ocr_general_preproccess'
@@ -105,8 +117,8 @@ if __name__ == '__main__':
     print(meanInfo(info[1]))
     print(fiveNumber(info[1]))
     print(info[3])
-    #画数值的值分布图
-    sns.distplot(info[0],kde=False, fit=stats.gamma)
+    # 画数值的值分布图
+    sns.distplot(info[0], kde=False, fit=stats.gamma)
     pyplot.show()
 
     print("帅选")
@@ -119,7 +131,7 @@ if __name__ == '__main__':
         [info[0][k] for k in info2id],
         [info[1][k] for k in info2id]
     ]
-    sns.distplot(info2[0],kde=False, fit=stats.gamma)
+    sns.distplot(info2[0], kde=False, fit=stats.gamma)
     pyplot.show()
     print('文本长度')
     print(meanInfo(info2[0]))
@@ -133,3 +145,8 @@ if __name__ == '__main__':
                [info[2][k] for k in info2id],
                '/Users/brobear/OneDrive/data-whitepaper/data/%s_90' % dirName
                )
+
+
+if __name__ == "__main__":
+    dirName = ''
+    dataInfo_main(dirName)
