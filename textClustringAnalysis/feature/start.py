@@ -8,7 +8,7 @@ from textClustringAnalysis.common import log
 
 
 @log("useTime")
-def dict2Array(txtdict, dtype=None):#2.5s
+def dict2Array(txtdict, dtype=None):  # 2.5s
     """文本集向量化 vsm"""
     wordset = set()
     for (txt, worddict) in txtdict.items():
@@ -32,7 +32,7 @@ def dict2Array(txtdict, dtype=None):#2.5s
 
 
 @log("useTime")
-def myTFIDF(txtdict, itc=False):#2.2s 1.6s
+def myTFIDF(txtdict, itc=False):  # 2.2s 1.6s
     """求各文本各词的tf-idf"""
     nk = {}
     for (txt, worddict) in txtdict.items():
@@ -54,9 +54,9 @@ def myTFIDF(txtdict, itc=False):#2.2s 1.6s
         fm = 0
         lgtf = {}
         for (word, tf) in worddict.items():
-            if itc:#lg(tf+1)
+            if itc:  # lg(tf+1)* lg(N/nk)
                 lgtf[word] = numpy.math.log10(tf + 1) * nk[word]
-            tflg = tf * nk[word]
+            tflg = tf * nk[word]  # tf * lg(N/nk)
             tfidf[txt][word] = tflg
             fm += tflg ** 2
         fm = numpy.math.sqrt(fm)
@@ -69,8 +69,9 @@ def myTFIDF(txtdict, itc=False):#2.2s 1.6s
         lgtf.clear()
     return tfidf
 
+
 @log("useTime")
-def myTFIDF_array(data, itc=False):#129s 102s
+def myTFIDF_array(data, itc=False):  # 129s 102s
     """利用特征矩阵求各文本各词的tf-idf"""
     N, Q = data.shape
     nk = numpy.zeros(Q)
@@ -86,10 +87,10 @@ def myTFIDF_array(data, itc=False):#129s 102s
     lgNnk = numpy.array(list(map(numpy.math.log10, (N / nk))))
     # 计算wik
     for i in range(N):
-        # tf or lg(tf) * lg(N/nk)
+        #  lg(tf+1) * lg(N/nk)
         if itc:
-            lgtf =numpy.array(list(map(numpy.math.log10, tfidf[i] + 1)))*lgNnk
-        tfidf[i] *= lgNnk
+            lgtf = numpy.array(list(map(numpy.math.log10, tfidf[i] + 1))) * lgNnk
+        tfidf[i] *= lgNnk  # tf * lg(N/nk)
         # 归一处理
         fm = numpy.math.sqrt(numpy.math.fsum(tfidf[i] ** 2))
         if itc:
@@ -99,15 +100,17 @@ def myTFIDF_array(data, itc=False):#129s 102s
 
     return tfidf
 
+
 @log("useTime")
 def feature_main():
-    txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess')#6s
+    txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess')  # 6s
     data, txtName, wordName = dict2Array(txtdict, dtype=int)
     tfidf2 = myTFIDF_array(data, itc=True)
     tfidf1 = myTFIDF(txtdict, itc=True)
     dd = dict2Array(tfidf1)[0]
-    cc=dd-tfidf2
-    fdd=numpy.array([list(map(numpy.math.fabs,cci)) for cci in cc])
+    cc = dd - tfidf2
+    fdd = numpy.array([list(map(numpy.math.fabs, cci)) for cci in cc])
+    print(fdd)
 
 
 if __name__ == '__main__':
