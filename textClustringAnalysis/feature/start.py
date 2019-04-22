@@ -1,7 +1,5 @@
 import numpy
-import seaborn
-from matplotlib import pyplot
-from scipy.stats import stats
+
 
 from textClustringAnalysis.preprocessor.dataInfo import getWordCount
 from textClustringAnalysis.common import log
@@ -39,10 +37,7 @@ def myTFIDF(txtdict, itc=False):  # 2.2s 1.6s
         # 统计各特征的文本频率
         for w in worddict.keys():
             nk[w] = nk.get(w, 0) + 1
-    # txtName = list(txtdict.keys())
-    # wordName = list(nk.keys())
-    # txtName.sort()
-    # wordName.sort()
+
     N, Q = len(txtdict), len(nk)
     # 计算lg(N/nk)
     for (word, nkw) in nk.items():
@@ -52,21 +47,21 @@ def myTFIDF(txtdict, itc=False):  # 2.2s 1.6s
     for (txt, worddict) in txtdict.items():
         tfidf[txt] = {}
         fm = 0
-        lgtf = {}
+
         for (word, tf) in worddict.items():
             if itc:  # lg(tf+1)* lg(N/nk)
-                lgtf[word] = numpy.math.log10(tf + 1) * nk[word]
-            tflg = tf * nk[word]  # tf * lg(N/nk)
-            tfidf[txt][word] = tflg
-            fm += tflg ** 2
+                lgtflg = numpy.math.log10(tf + 1) * nk[word]
+                tfidf[txt][word] = lgtflg
+                fm += lgtflg ** 2
+            else:
+                tflg = tf * nk[word]  # tf * lg(N/nk)
+                tfidf[txt][word] = tflg
+                fm += tflg ** 2
         fm = numpy.math.sqrt(fm)
         # 归一化
         for (word, tf) in worddict.items():
-            if itc:
-                tfidf[txt][word] = lgtf[word] / fm
-            else:
-                tfidf[txt][word] /= fm
-        lgtf.clear()
+            tfidf[txt][word] /= fm
+
     return tfidf
 
 
@@ -89,28 +84,26 @@ def myTFIDF_array(data, itc=False):  # 129s 102s
     for i in range(N):
         #  lg(tf+1) * lg(N/nk)
         if itc:
-            lgtf = numpy.array(list(map(numpy.math.log10, tfidf[i] + 1))) * lgNnk
-        tfidf[i] *= lgNnk  # tf * lg(N/nk)
+            tfidf[i] = numpy.array(list(map(numpy.math.log10, tfidf[i] + 1))) * lgNnk
+        else:
+            tfidf[i] *= lgNnk  # tf * lg(N/nk)
         # 归一处理
         fm = numpy.math.sqrt(numpy.math.fsum(tfidf[i] ** 2))
-        if itc:
-            tfidf[i] = lgtf / fm
-        else:
-            tfidf[i] /= fm
+        tfidf[i] /= fm
 
     return tfidf
 
 
 @log("useTime")
 def feature_main():
-    txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess')  # 6s
+    txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')  # 6s
     data, txtName, wordName = dict2Array(txtdict, dtype=int)
     tfidf2 = myTFIDF_array(data, itc=True)
     tfidf1 = myTFIDF(txtdict, itc=True)
     dd = dict2Array(tfidf1)[0]
     cc = dd - tfidf2
     fdd = numpy.array([list(map(numpy.math.fabs, cci)) for cci in cc])
-    print(fdd)
+    print(sum(sum(fdd)))  # 误差在1e-15*n 浮点运算 精度下降
 
 
 if __name__ == '__main__':
@@ -120,7 +113,7 @@ if __name__ == '__main__':
 sys.path.append('/Users/brobear/PycharmProjects/TextClusteringAnalysis/textClustringAnalysis/feature')
 from start import *
 from textClustringAnalysis.preprocessor.dataInfo import getWordCount
-txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess')
+txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')
 data, txtName, wordName = dict2Array(txtdict, dtype=int)
 tfidf2=myTFIDF_array(data, itc=True)
 tfidf1=myTFIDF(txtdict, itc=True)
