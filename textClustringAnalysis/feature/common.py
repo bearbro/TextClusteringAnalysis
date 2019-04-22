@@ -30,7 +30,7 @@ def dict2Array(txtdict, dtype=None):  # 2.5s
 
 
 @log("useTime")
-def myTFIDF(txtdict, itc=False):  # 2.2s 1.6s
+def myTFIDF_dict(txtdict, itc=False):  # 2.2s 1.6s
     """求各文本各词的tf-idf"""
     nk = {}
     for (txt, worddict) in txtdict.items():
@@ -50,13 +50,10 @@ def myTFIDF(txtdict, itc=False):  # 2.2s 1.6s
 
         for (word, tf) in worddict.items():
             if itc:  # lg(tf+1)* lg(N/nk)
-                lgtflg = numpy.math.log10(tf + 1) * nk[word]
-                tfidf[txt][word] = lgtflg
-                fm += lgtflg ** 2
+                tfidf[txt][word] = numpy.math.log10(tf + 1) * nk[word]
             else:
-                tflg = tf * nk[word]  # tf * lg(N/nk)
-                tfidf[txt][word] = tflg
-                fm += tflg ** 2
+                tfidf[txt][word] = tf * nk[word]  # tf * lg(N/nk)
+            fm += tfidf[txt][word] ** 2
         fm = numpy.math.sqrt(fm)
         # 归一化
         for (word, tf) in worddict.items():
@@ -95,11 +92,23 @@ def myTFIDF_array(data, itc=False):  # 129s 102s
 
 
 @log("useTime")
-def feature_main():
-    txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')  # 6s
+def myTFIDF(data, itc=False):
+    """返回tfidf矩阵"""
+    if type(data) == dict:
+        return myTFIDF_dict(data, itc=itc)
+    elif type(data) == numpy.ndarray:
+        return myTFIDF_array(data, itc=itc)
+    else:
+        raise NameError('输入的data类型出错')
+
+
+@log("useTime")
+def test_myTFIDF():
+    txtdict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')  # 0.6s
     data, txtName, wordName = dict2Array(txtdict, dtype=int)
     tfidf2 = myTFIDF_array(data, itc=True)
     tfidf1 = myTFIDF(txtdict, itc=True)
+    # myTFIDF_dict 比 myTFIDF_array 快
     dd = dict2Array(tfidf1)[0]
     cc = dd - tfidf2
     fdd = numpy.array([list(map(numpy.math.fabs, cci)) for cci in cc])
@@ -107,7 +116,7 @@ def feature_main():
 
 
 if __name__ == '__main__':
-    feature_main()
+    pass
 
 '''
 sys.path.append('/Users/brobear/PycharmProjects/TextClusteringAnalysis/textClustringAnalysis/feature')

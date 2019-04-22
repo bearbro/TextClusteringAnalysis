@@ -104,6 +104,12 @@ def selectFile(ADir, fileList, BDir):  # A->B
     print("error:", error)
 
 
+def showDistplot(data):
+    """显示data的值分布"""
+    sns.distplot(data, kde=False, fit=stats.gamma)
+    pyplot.show()
+
+
 def dataInfo_main(dirName):
     """显示文档集的统计信息"""
     # print(preprocessing('It’s 9% of all revenue after taxes generated through the HYGH platform from Day 1'))
@@ -118,8 +124,7 @@ def dataInfo_main(dirName):
     print(fiveNumber(info[1]))
     print(info[3])
     # 画数值的值分布图
-    sns.distplot(info[0], kde=False, fit=stats.gamma)
-    pyplot.show()
+    showDistplot(info[0])
 
     print("帅选")
     # 去除长度不在【q1，q2】的数据
@@ -131,8 +136,7 @@ def dataInfo_main(dirName):
         [info[0][k] for k in info2id],
         [info[1][k] for k in info2id]
     ]
-    sns.distplot(info2[0], kde=False, fit=stats.gamma)
-    pyplot.show()
+    showDistplot(info2[0])
     print('文本长度')
     print(meanInfo(info2[0]))
     print(fiveNumber(info2[0]))
