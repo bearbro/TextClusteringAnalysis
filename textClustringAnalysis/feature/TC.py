@@ -107,9 +107,9 @@ def selectFeature(tc, wordName, minTC=0, topN=None):
     if topN is None:
         return [wordName[i] for i in range(len(tc)) if tc[i] > minTC]
     else:
-        wordAndIdx = list(zip(wordName, tc))
-        wordAndIdx.sort(key=lambda x: x[1], reverse=True)  # 按tc排序
-        newWordName = [wordAndIdx[i][0] for i in range(len(wordAndIdx)) if i < topN]
+        idx = tc.argsort()
+        idx = idx[:-topN - 1:-1]
+        newWordName = [wordName[i] for i in idx]
         newWordName.sort()
         return newWordName
 
@@ -146,6 +146,28 @@ def doTC_array(txt_dict, minTC=0, topN=None):
 
 
 def test_selectFeature():
+    txt_dict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')
+    tfidf_dict = myTFIDF(txt_dict, itc=True)
+    tfidf_array, txtName, wordName = dict2Array(tfidf_dict)
+    tc_array = myTC_array(tfidf_array)
+    minTC, topN = 0, 100
+    tc = tc_array
+    wordAndIdx = list(zip(wordName, tc))
+    wordAndIdx.sort(key=lambda x: x[1], reverse=True)  # 按tc排序
+    newWordName = [wordAndIdx[i][0] for i in range(topN)]
+    newWordName.sort()
+
+    idx = tc.argsort()
+    idx = idx[:-topN - 1:-1]
+    idx.sort()
+    newWordName2 = [wordName[i] for i in idx]
+    for j in range(len(newWordName2)):
+        if newWordName2[j] != newWordName[j]:
+            print("%d tcWordName[i]!=tcWordName_dict_array" % j)
+            break
+
+
+def test_selectData():
     txt_dict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess')  # 0.6s
     txt_array, txtName, wordName = dict2Array(txt_dict)
 
