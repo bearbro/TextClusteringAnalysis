@@ -117,10 +117,14 @@ def selectFeature(tc, wordName, minTC=0, topN=None):
 @log("useTime")
 def doTC_dict(txt_dict, minTC=0, topN=None):  # 快
     """进行TC特征降维"""
+    # 计算各文本各词itc权值的tfidf矩阵
     tfidf_dict = myTFIDF(txt_dict, itc=True)
     tfidf_array, txtName, wordName = dict2Array(tfidf_dict)
+    # 计算各词的单词权值
     tc_array = myTC_array(tfidf_array)
+    # 根据TC权值筛选单词
     newWordName = selectFeature(tc_array, wordName, minTC=minTC, topN=topN)
+    # 根据新的单词集（特征集）压缩数据
     newData = selectData(txt_dict, newWordName)
     return newData
 
@@ -128,11 +132,15 @@ def doTC_dict(txt_dict, minTC=0, topN=None):  # 快
 @log("useTime")
 def doTC_array(txt_dict, minTC=0, topN=None):
     """进行TC特征降维"""
+    # 计算各文本各词itc权值的tfidf矩阵
     txt_array, txtName, wordName = dict2Array(txt_dict, dtype=int)
     tfidf_dict = myTFIDF(txt_dict, itc=True)
     tfidf_array = dict2Array(tfidf_dict)[0]
+    # 计算各词的单词权值
     tc_array = myTC_array(tfidf_array)
+    # 根据TC权值筛选单词
     newWordName = selectFeature(tc_array, wordName, minTC=minTC, topN=topN)
+    # 根据新的单词集（特征集）压缩数据
     newData = selectData(txt_array, newWordName, oldWordName=wordName, orderchange=False)
     return newData, newWordName
 
