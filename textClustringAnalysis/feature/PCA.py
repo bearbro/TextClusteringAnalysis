@@ -94,7 +94,7 @@ def myPCA(dataMat, retenRate=0.85, topN=None, onlyNewData=True):  # (224,10000) 
 
 
 @log("useTime")
-def pac_sklearn(dataMat, topN=None, onlyNewData=True):  # 必须保证 topNfeat>min(dataMat.shape)
+def pca_sklearn(dataMat, topN=None, onlyNewData=True):  # 必须保证 topNfeat>min(dataMat.shape)
     sklearn_pca = sklearnPCA(n_components=topN, svd_solver='full')
     # svd_solver {‘auto’, ‘full’, ‘arpack’, ‘randomized’}
     sklearn_transf = sklearn_pca.fit_transform(dataMat)
@@ -112,7 +112,7 @@ def showDiff(data1, data2):
     pyplot.show()
 
 
-def test_pac_sklearn():
+def test_pca_sklearn():
     txt_dict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')  # 0.6s
     txt_array, txtName, wordName = dict2Array(txt_dict, dtype=int)
     testdata = txt_array[:, 1:500]
@@ -143,14 +143,14 @@ def getDiff(dataMat, rdata):
     return dd.sum()
 
 
-def test_pac():
+def test_pca():
     txt_dict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess_test')  # 0.6s
     txt_array, txtName, wordName = dict2Array(txt_dict, dtype=int)
     dataMat = numpy.mat(txt_array[:, :1000], dtype=numpy.float64)
     topN = 100
     newData, U, rdata = myPCA(dataMat, topN=topN, onlyNewData=False)
     newData2, U2, rdata2 = myPCA_R(dataMat, topN=topN, onlyNewData=False)
-    newData3, U3, rdata3 = pac_sklearn(dataMat, topN=topN, onlyNewData=False)
+    newData3, U3, rdata3 = pca_sklearn(dataMat, topN=topN, onlyNewData=False)
     # showDiff(newData, newData2)
     # dd = getDiff(dataMat, newData, U)
     # rdata = newData * U.T + numpy.mean(dataMat, axis=0)
