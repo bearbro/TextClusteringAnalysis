@@ -111,11 +111,12 @@ def test_myTFIDF():
     # myTFIDF_dict 比 myTFIDF_array 快
     dd = dict2Array(tfidf1)[0]
     cc = dd - tfidf2
-    fdd = numpy.array([list(map(numpy.math.fabs, cci)) for cci in cc])
+    fdd = numpy.abs(cc)
     print(sum(sum(fdd)))  # 误差在1e-15*n 浮点运算 精度下降
 
 
 if __name__ == '__main__':
+    test_myTFIDF()
     pass
 
 '''
