@@ -18,7 +18,7 @@ def dealOneTxt(filename):
     return worddict
 
 
-@log("useTime")
+@log("GetWordCount_useTime")
 def getWordCount(inDir):
     """词向量"""
     files = os.listdir(inDir)
@@ -110,12 +110,12 @@ def showDistplot(data):
     pyplot.show()
 
 
-def dataInfo_main(dirName):
+def dataInfo_main(dirName, q1=None, q2=None, outDir=None):
     """显示文档集的统计信息"""
     # print(preprocessing('It’s 9% of all revenue after taxes generated through the HYGH platform from Day 1'))
 
     # dirName = 'txt_ocr_general_preproccess'
-    info = dealOneDir('/Users/brobear/OneDrive/data-whitepaper/data/%s' % dirName)
+    info = dealOneDir(dirName)
     print('文本长度')
     print(meanInfo(info[0]))
     print(fiveNumber(info[0]))
@@ -128,8 +128,11 @@ def dataInfo_main(dirName):
 
     print("帅选")
     # 去除长度不在【q1，q2】的数据
-    q1 = 1000
-    q2 = 8000
+    # q1 = 1000
+    # q2 = 8000
+    if q1 is None:
+        q1 = int(input('min:q1='))
+        q2 = int(input('max:q2='))
     info2id = [i for i in range(len(info[0])) if info[0][i] >= q1 and info[0][i] <= q2]
 
     info2 = [
@@ -145,10 +148,15 @@ def dataInfo_main(dirName):
     print(fiveNumber(info2[1]))
     print(info[3])
     print("筛选前:%d \n 筛选后:%d" % (len(info[0]), len(info2[0])))
-    selectFile('/Users/brobear/OneDrive/data-whitepaper/data/%s' % dirName,
+    if outDir is None:
+        outDir = '%s_(%d,%d)' % (dirName, q1, q2)
+    if not os.path.exists(outDir):
+        os.mkdir(outDir)
+    selectFile(dirName,
                [info[2][k] for k in info2id],
-               '/Users/brobear/OneDrive/data-whitepaper/data/%s_90' % dirName
+               outDir
                )
+    return outDir
 
 
 if __name__ == "__main__":

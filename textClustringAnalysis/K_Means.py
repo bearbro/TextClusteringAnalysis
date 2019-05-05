@@ -1,8 +1,13 @@
 import numpy
 import random
 import numpy.matlib
-
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from scipy.spatial.distance import cdist
+from sklearn import metrics  # 导入sklearn效果评估模块
+from textClustringAnalysis.feature.main import TC_PCA
 from textClustringAnalysis.common import log
+from textClustringAnalysis.preprocessor.dataInfo import getWordCount
 
 
 def sim_Cos(d1, d2, norm=True):
@@ -48,7 +53,7 @@ def randCent(data, k, dist):
 
 @log("useTime")
 def randCent_plus(data, k, dist=dist_eld):
-    """随机初始化聚类中心"""
+    """k-means++ 初始化聚类中心"""
     n = data.shape[0]
     # 距离矩阵
     dists = numpy.zeros((n, n))
@@ -86,23 +91,39 @@ def randCent_plus(data, k, dist=dist_eld):
 
 
 @log("useTime")
-def k_Means(data, k, dist=dist_eld, maxIter=50, createCent=randCent):
+def k_Means(data, k, dist=dist_eld, maxIter=300, createCent=randCent_plus, elkan=True):
     """k-means聚类算法"""
+    # 初始化聚类中心
     Cent = createCent(data, k, dist=dist)
     m = data.shape[0]
     clusterChanged = True
     clusterLabel = [0] * m  # 簇下标
     iter = 0
     clusterLabel_map = {}
+    if elkan:  # elkan k-means聚类算法,利用a+b>=c减少不必要的距离的计算
+        dists_k = numpy.zeros((k, k))  # 计算各簇中心间的距离
     while iter < maxIter and clusterChanged:
         clusterChanged = False
         iter += 1
         clusterLabel_map.clear()
+        if elkan:
+            # 计算各簇中心间的距离
+            for i in range(k):
+                for j in range(i + 1, k):
+                    dists_k[i, j] = dist(Cent[i, :], Cent[j, :])
+                    dists_k[j, i] = dists_k[i, j]
         # 分配结点
         for i in range(m):
             minDist = dist(data[i, :], Cent[0, :])
             minIndex = 0
             for j in range(1, k):
+                if elkan:
+                    # 规则1优化 2*D_xj1 <= D_j1j2 则 D_xj1<=D_xj2
+                    if minDist * 2 <= dists_k[minIndex, j]:
+                        continue
+                    # 规则2优化 D(x,j2)≥max{0,D(x,j1)−D(j1,j2)} # todo
+                    if minDist <= max(0, minDist - dists_k[minIndex, j]):
+                        continue
                 distJI = dist(data[i, :], Cent[j, :])
                 if distJI < minDist:
                     minDist = distJI
@@ -122,7 +143,42 @@ def k_Means(data, k, dist=dist_eld, maxIter=50, createCent=randCent):
 
 
 if __name__ == '__main__':
-    data = numpy.loadtxt('./feature/data_test', delimiter=",")
-    data = numpy.mat(data)
-    clusterLabel = k_Means(data, k=100, dist=dist_eld, createCent=randCent_plus)
-    print(clusterLabel)
+    txt_dict = getWordCount('/Users/brobear/OneDrive/data-whitepaper/data/%s' % 'afterProccess')  # 0.6s
+    data = TC_PCA(txt_dict, topN=1800)[0]
+    # clusterLabel = k_Means(data, k=10, dist=dist_eld, createCent=randCent_plus, elkan=True)
+    # print(clusterLabel)
+
+    # 肘方法看k值
+    kList = list(range(10, 60, 1))
+
+    d = []
+    for i in kList:  # k取值1~11，做kmeans聚类，看不同k值对应的簇内误差平方和
+        di = 0
+        km = KMeans(n_clusters=i, init='k-means++', n_init=10, max_iter=300, random_state=0)
+        km.fit(data)
+        # 成本函数
+        # di += km.inertia_  # inertia簇内误差平方和
+        # di += sum(numpy.min(cdist(data, km.cluster_centers_, 'euclidean'), axis=1)) / data.shape[0]
+        # #平均轮廓系数 #最高值为1，最差值为-1,0附近的值表示重叠的聚类
+        y_pre = km.predict(data)
+        di += metrics.silhouette_score(data, y_pre, metric='euclidean')
+        d.append(di)
+
+    plt.plot(kList, d, marker='o')
+    plt.xlabel('number of clusters')
+    plt.ylabel('distortions')
+    # plt.ylim(0, 2000)
+    plt.show()
+    # a = [d[i] - d[i - 1] for i in range(1, len(d))]
+    # plt.plot(kList[1:], a)
+    # plt.show()
+    #
+    # k = kList[numpy.argmin(a) + 1]
+    # # k = 29
+    # # 训练聚类模型
+    #
+    # model_kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, max_iter=300, random_state=0)  # 建立模型对象
+    # model_kmeans.fit(data)  # 训练聚类模型
+    # y_pre = model_kmeans.predict(data)  # 预测聚类模型
+    #
+    # # https://www.cnblogs.com/niniya/p/8784947.html

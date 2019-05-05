@@ -1,3 +1,5 @@
+import shutil
+
 from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
@@ -14,10 +16,9 @@ from textClustringAnalysis.preprocessor.dataInfo import dataInfo_main
 '''
 
 
-
 def cleanData(txt: str) -> str:
     """清洗数据： 去除非法符号"""  # todo
-    txt=doForOcr(txt)
+    txt = doForOcr(txt)
     noabc = re.compile('[^a-zA-Z\']')
     txt = noabc.sub(' ', txt)
     letter = re.compile(' [a-zA-Z,.] ')
@@ -40,7 +41,7 @@ def makeTag2pos(tag2pos):
         return None
 
 
-def preprocessing(txt, stop_words=None):
+def preprocessing(txt, stop_words=None):  # todo
     """预处理： 分词 去停顿词 词干提取/词形还原"""
     txt = cleanData(txt)  # 清洗数据
 
@@ -102,17 +103,21 @@ def dealOneDir(inDir, outDir, stopWordFile=None):
                 dealOneTxt(inFile, outFile, stop_words)
 
 
-def preprocessor_main(dirName):
+@log('Preprocessor_useTime')
+def preprocessor_main(dirName, cache=False, q1=None, q2=None, outDir=None):
     """对文件集进行预处理 分词、去停顿词、词干提取"""
-    # print(preprocessing('It’s 9% of all revenue after taxes generated through the HYGH platform from Day 1'))
 
-    # dirName = 'txt_ocr_general'
-    dealOneDir('/Users/brobear/OneDrive/data-whitepaper/data/%s' % dirName,
-               '/Users/brobear/OneDrive/data-whitepaper/data/%s_preproccess' % dirName,
-               'stopwords.txt'
+    cacheFiles = '%s_preproccess_cacheFiles' % dirName
+    dealOneDir(dirName,
+               cacheFiles,
+               '/Users/brobear/PycharmProjects/TextClusteringAnalysis/textClustringAnalysis/preprocessor/stopwords.txt'
                )
-    #帅选
-    dataInfo_main(dirName)
+    # 帅选
+    outDir = dataInfo_main(cacheFiles, q1=q1, q2=q2, outDir=outDir)
+    if not cache:  # 不保存缓存文件，即删除中间文件
+        shutil.rmtree(cacheFiles)
+    return outDir
+
 
 if __name__ == '__main__':
     dirName = ''
