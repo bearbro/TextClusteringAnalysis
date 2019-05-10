@@ -25,6 +25,7 @@ def getTags(textNames):
 
 
 def getOneTag(textNames):
+    """取第一个标签"""
     tagmap = getTags(textNames)
     for (v, k) in tagmap.items():
         tagmap[v] = k[0]
@@ -32,6 +33,7 @@ def getOneTag(textNames):
 
 
 def tag2id(textNames, tagmap):
+    """将标签转换成数字符"""
     tagSet = set()
     if type(tagmap[textNames[0]]) is list:
         for i in tagmap.values():
