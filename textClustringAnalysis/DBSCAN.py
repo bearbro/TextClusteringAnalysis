@@ -2,20 +2,16 @@ from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
 from textClustringAnalysis.feature.main import TC_PCA
-from textClustringAnalysis.main import showpj
+from textClustringAnalysis.main import show_wbpj
 from textClustringAnalysis.preprocessor.dataInfo import getWordCount
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # outDir = '/Users/brobear/PycharmProjects/TextClusteringAnalysis/txt_about2'
-    outDir = '/Users/brobear/PycharmProjects/TextClusteringAnalysis/all_txt_preproccess'
+    outDir = '/Users/brobear/PycharmProjects/TextClusteringAnalysis/txt2'
     txt_dict = getWordCount(outDir)
     data, textNames = TC_PCA(txt_dict, topN=1600)[:2]
 
-    # # k_Means聚类
-    # km = KMeans(n_clusters=13, init='k-means++', n_init=50, max_iter=9000)
-    # km.fit(data)
-    # y_pre = km.predict(data)
 
     # DBSCAN
     # 当空间聚类的密度不均匀、聚类间距差相差很大时，聚类质量较差，因为这种情况下参数MinPts和Eps选取困难。可以考虑KNA-DBSCAN（《浅析DBSCAN算法中参数设置问题的研究》）
@@ -49,4 +45,4 @@ if __name__ == '__main__':
     # 轮廓系数：si值介于[-1,1]，越接近于1表示样本i聚类越合理；越接近-1，表示样本i越应该被分类到其它簇中，
     # 越接近于0，表示样本应该在边界上。所有样本的si均值被称为聚类结果的轮廓系数。
     silhouette_s = metrics.silhouette_score(ndata, y_pre, metric='euclidean')
-    showpj(y_pre, ntextNames)
+    show_wbpj(y_pre, ntextNames)

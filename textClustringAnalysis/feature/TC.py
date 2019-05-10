@@ -211,13 +211,14 @@ def test_doTC():
 
 
 if __name__ == '__main__':
-    txt_dict = getWordCount('/Users/brobear/PycharmProjects/TextClusteringAnalysis/all_txt_preproccess')
+    txt_dict = getWordCount('/Users/brobear/PycharmProjects/TextClusteringAnalysis/txt2')
     tfidf_dict = myTFIDF(txt_dict, itc=True)
     tfidf_array, txtName, wordName = dict2Array(tfidf_dict)
     # 计算各词的单词权值
     tc_array = myTC_array(tfidf_array)
     showDistplot(tc_array)
     tc_array.sort()
+    tc_array = tc_array[::-1]
     from matplotlib import pyplot as plt
 
     plt.plot(range(len(tc_array)), tc_array)

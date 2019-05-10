@@ -156,12 +156,14 @@ if __name__ == '__main__':
     tfidf_dict = myTFIDF(txt_dict, itc=False)
     data, textNames, wordName = dict2Array(tfidf_dict)
     # 降维
-    topN = 300
+    topN = 1200
     data, textNames = PCA(txt_dict, topN=topN, itc=False)[:2]
     # 确定特征维数
     for x in [i * 0.1 for i in range(1, 10)]:
         data, textNames = PCA(txt_dict, topN=x, itc=False)[:2]
         print(x, data.shape)
+    # 结果：0.1 74 0.2 204 0.3 357 0.4 519 0.5 684 0.6 851 0.7 1022 0.8 1198 0.9 1387
+    # [74, 204, 357, 519, 684, 851, 1022, 1198, 1387]
     #
     #
     # # 肘方法看k值

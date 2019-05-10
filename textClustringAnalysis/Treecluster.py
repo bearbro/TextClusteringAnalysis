@@ -13,6 +13,7 @@ from textClustringAnalysis.preprocessor.dataInfo import getWordCount
 import pandas as pd
 import numpy as np
 
+
 def gaussianMix(X, k):
     # 高斯聚类
     gmm = mixture.GMM(n_components=k)
@@ -28,19 +29,23 @@ def do_treecluster_images():
     txt_dict = getWordCount(outDir)
 
     xx = range(100, 1000, 100)
-    xx = [100]
+    xx = [300, 600]
     for topN in xx:
-        data, textNames = PCA(txt_dict, topN=topN)[:2]
+        data, textNames = TC(txt_dict, topN=topN)[:2]
+        # # 不降维
+        # tfidf_dict = myTFIDF(txt_dict, itc=False)
+        # data, textNames, wordName = dict2Array(tfidf_dict)
+
         # method 's': 最小距离法  'm': 最大距离法 'c': 重心法  'a': 类平均法
         # dist e 欧式距离 u 余弦距离
         tree = treecluster(data=data, method='m', dist='e')
-        tree2 = treecluster(data=data, method='s', dist='e')
-        tree3 = treecluster(data=data, method='a', dist='e')
-        tree4 = treecluster(data=data, method='c', dist='e')
+        # tree2 = treecluster(data=data, method='s', dist='e')
+        # tree3 = treecluster(data=data, method='a', dist='e')
+        # tree4 = treecluster(data=data, method='c', dist='e')
         args = range(2, 50)
-        args = [5, 8, 15]
+        # args = list(range(2, 15, 3)) + [21, 27, 30, 40, 50, 60, 70, 80, 100, 150, 250]
         d = [[], [], [], [], []]  # 轮廓系数
-        ksize = [[], [], [], [], []]  #最大类的大小
+        ksize = [[], [], [], [], []]  # 最大类的大小
         for k in args:
             clusterid = tree.cut(nclusters=k)
             d[0].append(silhouette_score(data, clusterid, metric='euclidean'))
@@ -48,16 +53,17 @@ def do_treecluster_images():
             clustering = AgglomerativeClustering(linkage='ward', n_clusters=k)  # ['ward','complete','average']
             clustering.fit(data)
             d[1].append(silhouette_score(data, clustering.labels_, metric='euclidean'))
-            ksize[2].append(max(size_of_cluster(clustering.labels_)))
-            clusterid2 = tree2.cut(nclusters=k)
-            d[2].append(silhouette_score(data, clusterid2, metric='euclidean'))
-            ksize[2].append(max(size_of_cluster(clusterid2)))
-            clusterid3 = tree3.cut(nclusters=k)
-            d[3].append(silhouette_score(data, clusterid3, metric='euclidean'))
-            ksize[3].append(max(size_of_cluster(clusterid3)))
-            clusterid4 = tree4.cut(nclusters=k)
-            d[4].append(silhouette_score(data, clusterid4, metric='euclidean'))
-            ksize[4].append(max(size_of_cluster(clusterid4)))
+            ksize[1].append(max(size_of_cluster(clustering.labels_)))
+            # clusterid2 = tree2.cut(nclusters=k)
+            # d[2].append(silhouette_score(data, clusterid2, metric='euclidean'))
+            # ksize[2].append(max(size_of_cluster(clusterid2)))
+            # clusterid3 = tree3.cut(nclusters=k)
+            # d[3].append(silhouette_score(data, clusterid3, metric='euclidean'))
+            # ksize[3].append(max(size_of_cluster(clusterid3)))
+            # clusterid4 = tree4.cut(nclusters=k)
+            # d[4].append(silhouette_score(data, clusterid4, metric='euclidean'))
+            # ksize[4].append(max(size_of_cluster(clusterid4)))
+
             # d[2].append(hierarchical(data, k, 'complete'))#m,e
             # d[3].append(hierarchical(data, k, 'average'))#a,e
         # 用subplot()方法绘制多幅图形
@@ -66,43 +72,54 @@ def do_treecluster_images():
         plt.figure(1)
         # 将第一个画板划分为2行1列组成的区块，并获取到第一块区域
         ax1 = plt.subplot(211)
-
+        realN = 0
         # 在第一个子区域中绘图
         for di in d:
-            plt.plot(args, di, marker='o')
+            if len(di) > 1:
+                plt.plot(args, di, marker='o')
+                realN += 1
         # plt.legend(xx)
-        plt.legend(range(len(d)))
+        plt.legend(range(realN))
         plt.xlabel = 'k'
         plt.ylabel = 'silhouette'
-        plt.ylim(-1, 1)
-        # plt.title('feature number=%d by PCA' % topN)
+        # plt.ylim(-1, 1)
 
         # 选中第二个子区域，并绘图
         ax2 = plt.subplot(212)
         for di in ksize:
-            plt.plot(args, di, marker='o')
-        plt.legend(range(len(ksize)))
+            if len(di) > 1:
+                plt.plot(args, di, marker='o')
+        plt.legend(range(realN))
         plt.xlabel = 'k'
         plt.ylabel = 'MAXcluster'
-        plt.ylim(0, 2000)
-        ax1.set_title('feature number=%d by PCA' % topN)
-        ax2.set_title("最大簇的元素个数")
-        plt.savefig('./treecluster_images/feature number=%d by PCA' % topN)
+        # plt.ylim(0, 2000)
+        ax1.set_title('feature number=%d by TC' % topN)
+        ax2.set_title("max size of clusters")
+        plt.savefig('./treecluster_images/feature number=%d by TC 1<k<50' % topN)
         plt.show()
 
 
 if __name__ == '__main__':
-    # 层次聚类
+    # #画图选择方法
+    do_treecluster_images()
+    # # 层次聚类
+    # outDir = '/Users/brobear/PycharmProjects/TextClusteringAnalysis/txt2'
+    # txt_dict = getWordCount(outDir)
+    # topN = 600
+    # data, textNames = TC(txt_dict, topN=topN)[:2]
     # tree = treecluster(data=data, method='m', dist='e')
-    # for k in range(2,50):
-    #     # y_pre = tree.cut(nclusters=k)
+    # for k in range(2, 50):
+    #     y_pre = tree.cut(nclusters=k)
+    #
+    #     print('TC%d \tk=%d\tsilhouette:\t%f\t%s' % (topN, k, silhouette_score(data, y_pre, metric='euclidean'), 'treecluster-m'),
+    #           size_of_cluster(y_pre))
     #     clustering = AgglomerativeClustering(linkage='ward', n_clusters=k)  # ['ward','single'，'complete','average']
     #     clustering.fit(data)
-    #     y_pre=clustering.labels_
-    #     # print('%f silhouette[-1,1] 1==best' % silhouette_score(data, y_pre, metric='euclidean'))
+    #     y_pre = clustering.labels_
+    #     print('TC%d \tk=%d\tsilhouette:\t%f\t%s' % (topN, k, silhouette_score(data, y_pre, metric='euclidean'), 'ward'),
+    #           size_of_cluster(y_pre))
     #     # print('%f DB 0==best' % davies_bouldin_score(data, y_pre))
     #     # print('%f Calinski-Harabaz bigger==batter' %   calinski_harabaz_score(data, y_pre))
-    do_treecluster_images()
 
     # # 使用scipy.cluster进行层次聚类
     # outDir = '/Users/brobear/PycharmProjects/TextClusteringAnalysis/txt2'
@@ -152,7 +169,6 @@ if __name__ == '__main__':
     # y_pre = fcluster(row_clusters, criterion='maxclust', t=k)
     # kn = size_of_cluster(y_pre)
     # print(k, silhouette_score(data, y_pre, metric='euclidean'), max(kn), np.mean(kn), kn)
-
 
 ## 当前最优结果 k=7 or 8 错的
 #  数据集 /Users/brobear/PycharmProjects/TextClusteringAnalysis/all_txt_preproccess
