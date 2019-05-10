@@ -25,7 +25,7 @@ def getWordCount(inDir):
     txtdict = {}
     # wordset=set()
     for file in files:
-        if file.split('.')[-1] in ['txt', 'TXT']:
+        if file.split('.')[-1] == 'txt':
             inFile = inDir + '/' + file
             worddicti = dealOneTxt(inFile)
             # wordset |= set(worddicti.keys())
@@ -87,8 +87,13 @@ def fiveNumber(nums):
 def selectFile(ADir, fileList, BDir):  # A->B
     Ailes = os.listdir(ADir)
     if os.path.exists(BDir):
-        print("error: all")
-        raise NameError('%s 已经存在' % BDir)
+        print('%s 已经存在' % BDir)
+        y = input('是否覆盖：y/Y 是 n/N 否')
+        if y in 'yY':
+            shutil.rmtree(BDir)
+        else:
+            print("error: all")
+            raise NameError('%s 已经存在' % BDir)
     os.mkdir(BDir)
     Biles = os.listdir(BDir)
     n = 0
@@ -104,9 +109,10 @@ def selectFile(ADir, fileList, BDir):  # A->B
     print("error:", error)
 
 
-def showDistplot(data):
+def showDistplot(data, title=''):
     """显示data的值分布"""
     sns.distplot(data, kde=False, fit=stats.gamma)
+    pyplot.title(title)
     pyplot.show()
 
 
@@ -133,7 +139,7 @@ def dataInfo_main(dirName, q1=None, q2=None, outDir=None):
     if q1 is None:
         q1 = int(input('min:q1='))
         q2 = int(input('max:q2='))
-    info2id = [i for i in range(len(info[0])) if info[0][i] >= q1 and info[0][i] <= q2]
+    info2id = [i for i in range(len(info[0])) if q1 <= info[0][i] <= q2]
 
     info2 = [
         [info[0][k] for k in info2id],
@@ -150,10 +156,8 @@ def dataInfo_main(dirName, q1=None, q2=None, outDir=None):
     print("筛选前:%d \n 筛选后:%d" % (len(info[0]), len(info2[0])))
     if outDir is None:
         outDir = '%s_(%d,%d)' % (dirName, q1, q2)
-    if not os.path.exists(outDir):
-        os.mkdir(outDir)
     selectFile(dirName,
-               [info[2][k] for k in info2id],
+               [info[2][k] + '.txt' for k in info2id],
                outDir
                )
     return outDir

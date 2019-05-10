@@ -8,7 +8,7 @@ import os
 from textClustringAnalysis.preprocessor.dealOCRTxt import doForOcr
 from textClustringAnalysis.common import log
 from textClustringAnalysis.preprocessor.dataInfo import dataInfo_main
-
+from nltk.stem import SnowballStemmer
 '''
 分词、去停顿词、词干提取
 统计各词的词频
@@ -46,19 +46,29 @@ def preprocessing(txt, stop_words=None):  # todo
     txt = cleanData(txt)  # 清洗数据
 
     tokens = word_tokenize(txt)  # 分词 句子级
-    tagged_sent = pos_tag(tokens)  # 获取单词词性 句子级
-    wnl = WordNetLemmatizer()
+    # 词干提取
+    stemmer = SnowballStemmer("english")  # Choose a language
     lemmas_sent = []
-    for tag in tagged_sent:
-        wordnet_pos = makeTag2pos(tag[1])  # 过滤掉 名词、动词、形容词、副词之外的词
-        if wordnet_pos is None:
-            continue
-        newword = wnl.lemmatize(tag[0], pos=wordnet_pos)  # 按词性标签进行 词形还原
-
+    for token in tokens:
+        newword = stemmer.stem(token)  # Stem a word
         # 停用词过滤
         if stop_words is not None and newword in stop_words:
             continue
         lemmas_sent.append(newword)
+    # #词形还原
+    # tagged_sent = pos_tag(tokens)  # 获取单词词性 句子级
+    # wnl = WordNetLemmatizer()
+    # lemmas_sent = []
+    # for tag in tagged_sent:
+    #     wordnet_pos = makeTag2pos(tag[1])  # 过滤掉 名词、动词、形容词、副词之外的词
+    #     if wordnet_pos is None:
+    #         continue
+    #     newword = wnl.lemmatize(tag[0], pos=wordnet_pos)  # 按词性标签进行 词形还原
+    #
+    #     # 停用词过滤
+    #     if stop_words is not None and newword in stop_words:
+    #         continue
+    #     lemmas_sent.append(newword)
 
     r = ' '.join(lemmas_sent)
     return r
@@ -76,8 +86,8 @@ def dealOneTxt(filename, outfile, stop_words=None):
             presentence = preprocessing(sentence, stop_words)
             if len(presentence) > 0:
                 newTxt += preprocessing(presentence, stop_words) + '\n'
-        with open(outfile, 'a', encoding='UTF-8') as f:
-            f.write(newTxt)
+        with open(outfile, 'a', encoding='UTF-8') as fout:
+            fout.write(newTxt)
 
 
 def getStopWordSet(filename):
@@ -104,17 +114,19 @@ def dealOneDir(inDir, outDir, stopWordFile=None):
 
 
 @log('Preprocessor_useTime')
-def preprocessor_main(dirName, cache=False, q1=None, q2=None, outDir=None):
+def preprocessor_main(dirName, cache=None, q1=None, q2=None, outDir=None):
     """对文件集进行预处理 分词、去停顿词、词干提取"""
-
-    cacheFiles = '%s_preproccess_cacheFiles' % dirName
+    if cache is None:
+        cacheFiles = '%s_preproccess_cacheFiles' % dirName
+    else:
+        cacheFiles = cache
     dealOneDir(dirName,
                cacheFiles,
                '/Users/brobear/PycharmProjects/TextClusteringAnalysis/textClustringAnalysis/preprocessor/stopwords.txt'
                )
     # 帅选
     outDir = dataInfo_main(cacheFiles, q1=q1, q2=q2, outDir=outDir)
-    if not cache:  # 不保存缓存文件，即删除中间文件
+    if cache is None:  # 不保存缓存文件，即删除中间文件
         shutil.rmtree(cacheFiles)
     return outDir
 

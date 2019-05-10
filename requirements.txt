@@ -1,3 +1,4 @@
+pandas
 # WordNet
 pip install nltk
 
@@ -9,3 +10,5 @@ pip install nltk
 pip install matplotlib
 pip install seaborn
 pip install sklearn
+pip install Biopython
+pip install plotly
